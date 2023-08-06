@@ -1,0 +1,14 @@
+/config.php
+
+/workspace/admin/logs/*.log
+
+/workspace/site/logs/*.log
+
+/workspace/sessions/*
+!/workspace/sessions/.keep
+
+/workspace/api/logs/*.log
+
+/workspace/cli/crons/*.log
+
+/workspace/cli/scripts/*.log
