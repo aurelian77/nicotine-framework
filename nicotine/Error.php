@@ -71,6 +71,16 @@ final class Error extends Dispatcher {
 
         $this->stack[] = $error;
 
+        if (in_array($level, [
+            E_ERROR,
+            E_PARSE,
+            E_CORE_ERROR,
+            E_COMPILE_ERROR,
+            E_USER_ERROR,
+        ])) {
+            exit;
+        }
+
         return true;
     }
 
