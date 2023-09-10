@@ -296,4 +296,215 @@ class Database extends Dispatcher {
         return $output;
     }
 
+    public function getPreparedNull($value, $params)
+    {
+        $value = (is_string($value) && (!isset($params['trim_strings']) || $params['trim_strings'] == true)) ? trim($value) : $value;
+        $value = ((!isset($params['force_null']) || $params['force_null'] == true) && empty($value)) ? null : $value;
+        return $value;
+    }
+
+    /**
+    | // Usually return value is the number of affected rows.
+    | $this->db->insert([
+    |     // Backticks are automatically added.
+    |     // Be careful, table name aren't escaped!
+    |     'table' => 'users',
+    |
+    |     // Don't set 'data' => $this->proxy->post()! Don't trust post! Users can inject e.g. "is_admin" => 1, if you send whole post to database.
+    |     // Note that empty data is not allowed. You must specify a column. If you want to insert a blank row, send 'id' => null (primary key).
+    |     'data' => [
+    |         // Typecast is mandatory for all values. The framework must know how to deal with these vaues and proper escape them.
+    |         // Backticks are automatically added.
+    |
+    |         'name' => (string) $this->proxy->post('name', 'unknown'),
+    |
+    |         // This will be set to null into database, if 'force_null' is set to true (default), in case of an empty value.
+    |         'nickname' => (string) $this->proxy->post('nickname'),
+    |
+    |         'weight' => (int) $this->proxy->post('weight', 10),
+    |
+    |         // Note that boolean false values are converted to null whereas true it is converted to 1.
+    |         'is_owner' => (bool) $this->proxy->post('is_owner'),
+    |
+    |         'price' => (float) $this->proxy->post('price'),
+    |
+    |         // You can use null as second array value for specific fields.
+    |         // Even if 'force_null' is set to false, the database field will be set to null, in case of an empty value.
+    |         'size' => [(int) $this->proxy->post('size'), null],
+    |     ],
+    |
+    |     // Default is true. If 'force_null' is true and 'trim_strings' is true, values like "   " are set to null into database.
+    |     'trim_strings' => true,
+    |
+    |     // Default is true. Force null empty values, e.g. "", "0", 0, null, false - are set to null into database.
+    |     'force_null' => true,
+    | ]);
+    */
+    public function buildShortcut(array $params)
+    {
+        if (empty($params['table'])) {
+            trigger_error('You must provide the table name!', E_USER_ERROR);
+        }
+
+        if (!is_array($params['data'])) {
+            trigger_error('Table data should be an array!', E_USER_ERROR);
+        }
+
+        if (empty($params['data'])) {
+            trigger_error('Table data should not be empty! You can send one field e.g. `id` = null if you want to insert a blank row!', E_USER_ERROR);
+        }
+
+        $build = [];
+        $data = [];
+
+        foreach ($params['data'] as $key => $value) {
+            if (is_array($value)) {
+                if (sizeof($value) == 2) {
+                    if (empty($this->getPreparedNull($value[0], $params))) {
+                        $value = $value[1];
+                    } else {
+                        $value = $value[0];
+                    }
+                } else {
+                    trigger_error('Size of array value should be exact 2!', E_USER_ERROR);
+                }
+            }
+
+            $value = $this->getPreparedNull($value, $params);
+
+            if (is_string($value)) {
+                $build[$key] = ":{$key}";
+                $data[":{$key}"] = $value;
+            }
+            elseif (is_int($value) || is_float($value)) {
+                $build[$key] = $value;
+            }
+            elseif (is_bool($value)) {
+                switch ($value) {
+                    case true:
+                        $build[$key] = 1;
+                    break;
+                    case false:
+                        $build[$key] = 'NULL';
+                    break;
+                }
+            }
+            elseif (is_null($value)) {
+                $build[$key] = 'NULL';
+            }
+            else {
+                trigger_error('Unknown value type, should be scalar!', E_USER_ERROR);
+            }
+        }
+
+        // Rebuild.
+        $array = [];
+
+        foreach ($build as $k => $v) {
+            $array[] = "`{$k}` = {$v}";
+        }
+
+        return [
+            'build' => implode(','.PHP_EOL, $array),
+            'data' => $data,
+        ];
+    }
+
+    public function insert($params)
+    {
+        $shortcut = $this->buildShortcut($params);
+        return $this->set("INSERT INTO `{$params['table']}` SET ".PHP_EOL.$shortcut['build'], $shortcut['data']);
+    }
+
+    /**
+    | "where" isn't mandatory. But you will update all table rows if isn't present!
+    | For other $params attribs see insert() method, they are the same.
+    | 'trim_strings' and 'force_null' settings has the same behavior as in insert() method.
+    | Note that where[0] (field name) isn't escaped.
+    | Usually return value is the number of affected rows.
+    | 
+    | In this case, Nicotine will assume that are you referring to primary key, namelly `id`:
+    | 'where' => (int) $this->proxy->get('id') means where `id` = 123
+    |
+    | 'where' => ['id', (int) "123"] same as above.
+    |
+    | 'where' => ['name', (string) $this->proxy->post('name')] produces: where `name` = 'John' (automatically escaped)
+    | 'where' => ['price', (float) $this->proxy->post('price')] produces: where `price` = 12.34
+    |
+    | In this example, 10 is default, in case of empty value for size:
+    | 'where' => ['size', (int) $this->proxy->post('size', '10')] produces: where `size` = 10 
+    |
+    | 'where' => ['is_admin', (bool) $this->proxy->post('is_admin', false)] produces: where `is_admin` is null, on empty post 'is_admin' value.
+    | 'where' => ['has_category', (bool) $this->proxy->post('has_category')] produces: where `has_category` is not null, if 'has_category' post value is not empty.
+    */
+    public function buildWhere($params, $shortcut)
+    {
+        if (empty($params['where'])) {
+            return [
+                '',
+                $shortcut['data']
+            ];
+        }
+
+        if (is_int($params['where'])) {
+            return [
+                PHP_EOL."WHERE `id` = ".$params['where'],
+                $shortcut['data'],
+            ];
+        }
+
+        if (is_array($params['where']))
+        {
+            if (sizeof($params['where']) != 2) {
+                trigger_error('Size of array value should be exact 2!', E_USER_ERROR);
+            }
+
+            if (is_bool($params['where'][1])) {
+                return [
+                    PHP_EOL."WHERE `{$params['where'][0]}` IS ".($params['where'][1] == true ? 'NOT ' : '')."NULL",
+                    $shortcut['data'],
+                ];
+            }
+
+            if (is_int($params['where'][1]) || is_float($params['where'][1])) {
+                return [
+                    PHP_EOL."WHERE `{$params['where'][0]}` = ".$params['where'][1],
+                    $shortcut['data'],
+                ];
+            }
+
+            if (is_string($params['where'][1])) {
+                $placeholder = ":_{$params['where'][0]}";
+                $shortcut['data'][$placeholder] = $params['where'][1];
+
+                return [
+                    PHP_EOL."WHERE `{$params['where'][0]}` = {$placeholder}",
+                    $shortcut['data'],
+                ];
+            }
+
+            trigger_error("Unknown 'where' value type!", E_USER_ERROR);
+        }
+
+        trigger_error("Unknown 'where' type!", E_USER_ERROR);
+    }
+
+    public function update($params)
+    {
+        $shortcut = $this->buildShortcut($params);
+        $buildWhere = $this->buildWhere($params, $shortcut);
+
+        return $this->set("UPDATE `{$params['table']}` SET ".PHP_EOL.$shortcut['build'].$buildWhere[0], $buildWhere[1]);
+    }
+
+    public function delete($params)
+    {
+        $params['data'] = ['id' => null]; // Dummy fill.
+
+        $shortcut = $this->buildShortcut($params);
+        $buildWhere = $this->buildWhere($params, $shortcut);
+
+        return $this->set("DELETE FROM `{$params['table']}`".$buildWhere[0], $buildWhere[1]);
+    }
+
 }
