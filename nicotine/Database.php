@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace nicotine;
 
 use \PDO;
+use nicotine\Registry;
 
 /**
 | Database class.
@@ -19,6 +20,12 @@ class Database extends Dispatcher {
     | All database queries.
     */
     public array $queries = [];
+
+    public array $map = [];
+
+    public string $lastTable;
+
+    public string $selectQuery = "SELECT".PHP_EOL;
 
     /**
     | Class constructor.
@@ -59,6 +66,8 @@ class Database extends Dispatcher {
         } catch (\PDOException $exception) {
             trigger_error('Could not connect to database!', E_USER_ERROR);
         }
+
+        $this->map = Registry::get('map');
     }
 
     /**
@@ -505,6 +514,157 @@ class Database extends Dispatcher {
         $buildWhere = $this->buildWhere($params, $shortcut);
 
         return $this->set("DELETE FROM `{$params['table']}`".$buildWhere[0], $buildWhere[1]);
+    }
+
+    public function select(string $select): object
+    {
+        $this->selectQuery .= $select.PHP_EOL;
+        return $this;
+    }
+
+    public function from(string $table): object
+    {
+        $this->selectQuery .= "FROM `".$table."`".PHP_EOL;
+        $this->lastTable = $table;
+        return $this;
+    }
+
+    public function getJoinTable(string $tableSearchFor): array
+    {
+        if (!empty($this->map[$tableSearchFor][$this->lastTable])) {
+            $return = $this->map[$tableSearchFor][$this->lastTable];
+            $return['type'] = 'child-to-parent';
+            return $return;
+        }
+        elseif (!empty($this->map[$this->lastTable][$tableSearchFor])) {
+            $return = $this->map[$this->lastTable][$tableSearchFor];
+            $return['type'] = 'parent-to-child';
+            return $return;
+        }
+        trigger_error("Table '{$tableSearchFor}' not found in database map, or is not related to joined tables, "
+            ."or you should change the join order, or specify the viaTable as the second argument!", 
+            E_USER_ERROR
+        );
+    }
+
+    public function join(string $table, string $joinType, string $viaTable): void
+    {
+        if (!empty($viaTable)) { 
+            $this->lastTable = $viaTable;
+        }
+
+        $found = $this->getJoinTable($table);
+
+        $this->selectQuery .= "{$joinType} JOIN `{$table}`".PHP_EOL;
+
+        if ($found['type'] == 'child-to-parent') {
+            $this->selectQuery .=  "ON (`{$this->lastTable}`.`".$found['link']."` = `{$table}`.`id`)".PHP_EOL;
+        }
+        elseif ($found['type'] == 'parent-to-child') {
+            $this->selectQuery .= "ON (`{$table}`.`".$found['link']."` = `{$this->lastTable}`.`id`)".PHP_EOL;
+        }
+
+        $this->lastTable = $table;
+    }
+
+    public function joinAssoc(string $table, string $joinType, string $viaTable): void
+    {
+        if (!empty($viaTable)) { 
+            $this->lastTable = $viaTable;
+        }
+
+        $found = $this->getJoinTable($table);
+
+        $this->selectQuery .= "{$joinType} JOIN `{$found['pivot']}`".PHP_EOL;
+
+        if ($found['type'] == 'child-to-parent')
+        {
+            $this->selectQuery .= "ON (`{$found['pivot']}`.`".$found['parentLink']."` = `{$this->lastTable}`.`id`)".PHP_EOL;
+
+            $this->selectQuery .= "{$joinType} JOIN `{$table}`".PHP_EOL;
+
+            $this->selectQuery .= "ON (`{$found['pivot']}`.`".$found['link']."` = `{$table}`.`id`)".PHP_EOL;
+        }
+        elseif ($found['type'] == 'parent-to-child')
+        {
+            $this->selectQuery .= "ON (`{$found['pivot']}`.`".$found['link']."` = `{$this->lastTable}`.`id`)".PHP_EOL;
+
+            $this->selectQuery .= "{$joinType} JOIN `{$table}`".PHP_EOL;
+
+            $this->selectQuery .= "ON (`{$found['pivot']}`.`".$found['parentLink']."` = `{$table}`.`id`)".PHP_EOL;
+        }
+
+        $this->lastTable = $table;
+    }
+
+    public function innerJoin(string $table, string $viaTable = ''): object
+    {
+        $this->join($table, 'INNER', $viaTable);
+        return $this;
+    }
+
+    public function leftJoin(string $table, string $viaTable = ''): object
+    {
+        $this->join($table, 'LEFT', $viaTable);
+        return $this;
+    }
+
+    public function innerAssoc(string $table, string $viaTable = ''): object
+    {
+        $this->joinAssoc($table, 'INNER', $viaTable);
+        return $this;
+    }
+
+    public function leftAssoc(string $table, string $viaTable = ''): object
+    {
+        $this->joinAssoc($table, 'LEFT', $viaTable);
+        return $this;
+    }
+
+    public function where(string $where): object
+    {
+        $this->selectQuery .= "WHERE {$where}".PHP_EOL;
+        return $this;
+    }
+
+    public function query(): string
+    {
+        $return = $this->selectQuery;
+
+        // Reset query for the next select.
+        $this->selectQuery = "SELECT".PHP_EOL;
+
+        return $return;
+    }
+
+    public function groupBy(string $groupBy): object
+    {
+        $this->selectQuery .= "GROUP BY {$groupBy}".PHP_EOL;
+        return $this;
+    }
+
+    public function having(string $having): object
+    {
+        $this->selectQuery .= "HAVING {$having}".PHP_EOL;
+        return $this;
+    }
+
+    public function orderBy(string $orderBy): object
+    {
+        $this->selectQuery .= "ORDER BY {$orderBy}".PHP_EOL;
+        return $this;
+    }
+
+    public function limit(string $limit): object
+    {
+        $this->selectQuery .= "LIMIT {$limit}".PHP_EOL;
+        return $this;
+    }
+
+    public function custom(string $custom): object
+    {
+        $this->selectQuery .= "{$custom}".PHP_EOL;
+        return $this;
     }
 
 }

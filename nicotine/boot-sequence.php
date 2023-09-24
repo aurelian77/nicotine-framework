@@ -7,6 +7,8 @@ require realpath(__DIR__.'/Registry.php');
 
 require realpath(__DIR__.'/../config.php');
 
+require realpath(__DIR__.'/../workspace/db/map.php');
+
 require realpath(__DIR__.'/Dispatcher.php');
 
 require realpath(__DIR__.'/ContentTypes.php');
