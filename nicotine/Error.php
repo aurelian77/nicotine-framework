@@ -267,17 +267,19 @@ final class Error extends Dispatcher {
             $file = __DIR__ . '/../workspace/api/logs/' . $date . '.log';
         }
 
-        if ($this->isCronRequest()) {
+        if ($this->isCronRequest() != false) {
             $file = __DIR__ . '/../workspace/cli/crons/logs/' . $date . '.log';
         }
 
-        if ($this->isScriptRequest()) {
+        if ($this->isScriptRequest() != false) {
             $file = __DIR__ . '/../workspace/cli/scripts/logs/' . $date . '.log';
         }
 
-        // If it works on Windows, wihout realpath(), then it works on all systems :)
-        if (file_put_contents($file, $errors, FILE_APPEND) === false) {
-            trigger_error('Cannot write to file '. $this->quote() . $file . $this->quote() .'! Please check the path or permissions!', E_USER_ERROR);
+        if (!empty($file)) {
+            // If it works on Windows, wihout realpath(), then it works on all systems :)
+            if (file_put_contents($file, $errors, FILE_APPEND) === false) {
+                trigger_error('Cannot write to file '. $this->quote() . $file . $this->quote() .'! Please check the path or permissions!', E_USER_ERROR);
+            }
         }
     }
 }

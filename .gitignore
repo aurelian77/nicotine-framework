@@ -9,6 +9,6 @@
 
 /workspace/api/logs/*.log
 
-/workspace/cli/crons/*.log
+/workspace/cli/crons/logs/*.log
 
-/workspace/cli/scripts/*.log
+/workspace/cli/scripts/logs/*.log

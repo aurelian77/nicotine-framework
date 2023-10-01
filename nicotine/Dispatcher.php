@@ -350,34 +350,8 @@ class Dispatcher {
     */
     public function parseCliRequest(): void
     {
-        $script = $this->isScriptRequest();
-        $cron = $this->isCronRequest();
-
-        if ($script == false && $cron == false) {
-            trigger_error('Invalid Cli command. Please check documentation!', E_USER_ERROR);
-        }
-
-        if ($script != false) {
-            $file = __DIR__ . '/../workspace/cli/scripts/'. $script .'.php';
-            $path = realpath($file);
-
-            if (!empty($path)) {
-                require $file;
-            } else {
-                trigger_error('Script "'. $file .'" not found!', E_USER_ERROR);
-            }
-        }
-
-        if ($cron != false) {
-            $file = __DIR__ . '/../workspace/cli/crons/'. $cron .'.php';
-            $path = realpath($file);
-
-            if (!empty($path)) {
-                require $file;
-            } else {
-                trigger_error('Cron "'. $file .'" not found!', E_USER_ERROR);
-            }
-        }
+        require realpath(__DIR__.'/Console.php');
+        new namespace\Console;
     }
 
 }

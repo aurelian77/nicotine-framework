@@ -216,4 +216,25 @@ class Utils extends Dispatcher {
         }
     }
 
+    /**
+    | Note no trailing slash at the end.
+    */
+    public function emptyDirectory(string $directory, string $exclude): void {
+        $iterator = new \DirectoryIterator($directory);
+
+        $skip = ['.', '..'];
+        if (!empty($exclude)) {
+            $skip[] = $exclude;
+        }
+
+        foreach ($iterator as $file) {
+            $name = $file->getFilename();
+            $path = $directory.DIRECTORY_SEPARATOR.$name;
+
+            if (is_file($path) && !in_array($name, $skip)) {
+                unlink($path);
+            }
+        }
+    }
+
 }

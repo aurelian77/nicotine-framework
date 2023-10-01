@@ -36,3 +36,7 @@ function get_roles() {
 function email($to, $subject, $body, $headers = []) {
     Registry::get('Utils')->email($to, $subject, $body, $headers);
 }
+
+function empty_directory(string $directory, string $exclude = '.keep'): void {
+    Registry::get('Utils')->emptyDirectory($directory, $exclude);
+}

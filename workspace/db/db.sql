@@ -1,7 +1,9 @@
 
 DROP TABLE IF EXISTS `staff_roles`;
-DROP TABLE IF EXISTS `staff`;
+
 DROP TABLE IF EXISTS `roles`;
+
+DROP TABLE IF EXISTS `staff`;
 
 
 CREATE TABLE `staff`(
