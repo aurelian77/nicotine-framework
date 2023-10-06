@@ -5,11 +5,12 @@ namespace workspace\site\controllers;
 
 use nicotine\Controller;
 use nicotine\RequestMethod;
+use nicotine\Registry;
 
 class Home extends Controller 
 {
     public function index()
     {
-        dd($_SERVER);
+        dd($this->proxy->server());
     }
 }
