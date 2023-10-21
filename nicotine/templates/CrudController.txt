@@ -1,0 +1,115 @@
+<?php
+declare(strict_types=1);
+
+namespace workspace\admin\controllers;
+
+use nicotine\Controller;
+use nicotine\RequestMethod;
+use nicotine\AdminRoles;
+
+// Optional, but useful.
+use nicotine\Registry;
+
+use workspace\admin\models\:model:;
+
+class :controller: extends Controller
+{
+    /**
+    | Class contructor.
+    */
+    public function __construct()
+    {
+        parent::__construct();
+        $this->proxy->layout = '';
+    }
+
+    /**
+    | Show the form for add an entity.
+    */
+    #[RequestMethod('get')]
+    #[AdminRoles('super_admin')]
+    public function add()
+    {
+        $this->proxy->view(strtolower(':controller:').'/add');
+    }
+
+    /**
+    | Validate save and update.
+    | @param array $request usually $_REQUEST
+    | @param string $method 'save' | 'update'
+    | @return bool
+    */
+    private function validate($request, $method)
+    {
+        if (empty(trim($request['']))) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+    | Save newly added entity into database.
+    */
+    #[RequestMethod('post')]
+    #[AdminRoles('super_admin')]
+    public function save()
+    {
+        $request = $this->proxy->request();
+
+        if ($this->validate($request, 'save')) {
+            $this->proxy->admin->model(':model:')->save($request);
+        }
+
+        header("Location: ".href('admin/'.strtolower(':controller:').'/list'));
+    }
+        
+    /**
+    | Show the form for edit an entity.
+    */
+    #[RequestMethod('get')]
+    #[AdminRoles('super_admin')]
+    public function edit($id)
+    {
+        $:model: = $this->proxy->admin->model(':model:')->getRow($id);
+        $this->proxy->view(strtolower(':controller:').'/edit', compact(':model:'));
+    }
+
+    /**
+    | Update an entity.
+    */
+    #[RequestMethod('post')]
+    #[AdminRoles('super_admin')]
+    public function update($id)
+    {
+        $request = $this->proxy->request();
+
+        if ($this->validate($request, 'update')) {
+            $this->proxy->admin->model(':model:')->update($request);
+        }
+
+        header("Location: ".href('admin/'.strtolower(':controller:').'/list'));
+    }
+
+    /**
+    | Delete an entity.
+    */
+    #[RequestMethod('get')]
+    #[AdminRoles('super_admin')]
+    public function delete($id)
+    {
+        $this->proxy->admin->model(':model:')->delete($id);
+        $this->proxy->back();
+    }
+
+    /**
+    | List entities.
+    */
+    #[RequestMethod('get')]
+    #[AdminRoles('super_admin')]
+    public function list()
+    {
+        $:model: = $this->proxy->admin->model(':model:')->getAll();
+        $this->proxy->view(strtolower(':controller:').'/list', compact(':model:'));
+    }
+}

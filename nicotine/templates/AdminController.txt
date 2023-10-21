@@ -1,0 +1,26 @@
+<?php
+declare(strict_types=1);
+
+namespace workspace\admin\controllers;
+
+use nicotine\Controller;
+use nicotine\RequestMethod;
+use nicotine\AdminRoles;
+use nicotine\Registry;
+
+class :controller: extends Controller {
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->proxy->layout = '';
+    }
+
+    #[RequestMethod('get')]
+    #[AdminRoles('super_admin')]
+    public function index()
+    {
+        d($this->proxy);
+        d($this->db);
+    }
+}

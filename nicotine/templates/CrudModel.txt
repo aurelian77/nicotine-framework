@@ -1,0 +1,73 @@
+<?php
+declare(strict_types=1);
+
+namespace workspace\admin\models;
+
+use nicotine\Model;
+
+class :model: extends Model
+{
+    /**
+    | Insert new entity.
+    */
+    public function save($request)
+    {
+        $this->db->insert([
+            'table' => '',
+            'data' => [
+            ],
+        ]);
+    }
+
+    /**
+    | Get an entity.
+    */
+    public function getRow($id)
+    {
+        $query = $this->db
+            ->select("*")
+            ->from('')
+            ->where("`id` = ".intval($id))
+            ->query()
+        ;
+        return $this->db->getRow($query);
+    }
+
+    /**
+    | Update an entity.
+    */
+    public function update($request)
+    {
+        $this->db->update([
+            'table' => '',
+            'data' => [
+            ],
+            'where' => (int) $request['id'],
+        ]);
+    }
+
+    /**
+    | Delete an entity.
+    */
+    public function delete($id)
+    {
+        $this->db->delete([
+            'table' => '',
+            'where' => (int) $id,
+        ]);
+    }
+
+    /**
+    | Get all entities.
+    | You should paginate them. See Pagination.
+    */
+    public function getAll()
+    {
+        $query = $this->db
+            ->select("*")
+            ->from('')
+            ->query()
+        ;
+        return $this->db->getAll($query);
+    }
+}

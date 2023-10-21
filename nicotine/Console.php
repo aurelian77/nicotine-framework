@@ -195,62 +195,16 @@ class Console {
 
             // Generate Admin controller.
             if ($this->option == '-admin') {
-                $data = '<?php
-declare(strict_types=1);
-
-namespace workspace\admin\controllers;
-
-use nicotine\Controller;
-use nicotine\RequestMethod;
-use nicotine\AdminRoles;
-use nicotine\Registry;
-
-class '.$this->argument.' extends Controller {
-
-    public function __construct()
-    {
-        parent::__construct();
-        $this->proxy->layout = \'\';
-    }
-
-    #[RequestMethod(\'get\')]
-    #[AdminRoles(\'super_admin\')]
-    public function index()
-    {
-        d($this->proxy);
-        d($this->db);
-    }
-}
-';
+                $data = str_replace(':controller:', $this->argument,
+                    file_get_contents(__DIR__.DIRECTORY_SEPARATOR.'templates'.DIRECTORY_SEPARATOR.'AdminController.txt')
+                );
             }
 
             // Generate Site controller.
             if ($this->option == '-site') {
-                $data = '<?php
-declare(strict_types=1);
-
-namespace workspace\site\controllers;
-
-use nicotine\Controller;
-use nicotine\RequestMethod;
-use nicotine\Registry;
-
-class '.$this->argument.' extends Controller 
-{
-    public function __construct()
-    {
-        parent::__construct();
-        $this->proxy->layout = \'\';
-    }
-
-    #[RequestMethod(\'get\')]
-    public function index()
-    {
-        d($this->proxy);
-        d($this->db);
-    }
-}
-';
+                $data = str_replace(':controller:', $this->argument,
+                    file_get_contents(__DIR__.DIRECTORY_SEPARATOR.'templates'.DIRECTORY_SEPARATOR.'SiteController.txt')
+                );
             }
 
             file_put_contents($file, $data);
@@ -275,17 +229,10 @@ class '.$this->argument.' extends Controller
                 trigger_error("Model '{$path}' already exists. Please choose another name!", E_USER_ERROR);
             }
 
-            $data = '<?php
-declare(strict_types=1);
+            $data = str_replace([':namespace:', ':model:'], [$option, $this->argument],
+                file_get_contents(__DIR__.DIRECTORY_SEPARATOR.'templates'.DIRECTORY_SEPARATOR.'GeneralModel.txt')
+            );
 
-namespace workspace\\'.$option.'\\models;
-
-use nicotine\Model;
-
-class '.$this->argument.' extends Model {
-
-}
-';
             file_put_contents($file, $data);
         }
 
@@ -316,18 +263,44 @@ class '.$this->argument.' extends Model {
                 trigger_error(ucfirst($this->command)." '{$path}' already exists. Please choose another name!", E_USER_ERROR);
             }
 
-            $data = '<?php
-declare(strict_types=1);
+            $data = str_replace(':namespace:', str_replace('/', '\\', $dir),
+                file_get_contents(__DIR__.DIRECTORY_SEPARATOR.'templates'.DIRECTORY_SEPARATOR.'ProceduralScript.txt')
+            );
 
-namespace workspace\\'.str_replace('/', '\\', $dir).';
-
-use nicotine\Registry;
-
-$db = Registry::get(\'Database\');
-$proxy = Registry::get(\'Proxy\');
-';
             file_put_contents($file, $data);
         }
 
+        // Currently only for admin side.
+        if ($this->group == 'make' && $this->command == 'crud') {
+            if (empty($this->argument)) {
+                trigger_error('Please specify the crud name!', E_USER_ERROR);
+            }
+
+            $controller = __DIR__.'/../workspace/admin/controllers/'.$this->argument.'.php';
+            $controllerPath = realpath($controller);
+
+            if (!empty($controllerPath)) {
+                trigger_error("Controller '{$controllerPath}' already exists. Please choose another name!", E_USER_ERROR);
+            }
+
+            $model = __DIR__.'/../workspace/admin/models/'.$this->argument.'Model.php';
+            $modelPath = realpath($model);
+
+            if (!empty($modelPath)) {
+                trigger_error("Model '{$modelPath}' already exists. Please choose another name!", E_USER_ERROR);
+            }
+
+            $data = str_replace([':controller:', ':model:'], [$this->argument, $this->argument.'Model'],
+                file_get_contents(__DIR__.DIRECTORY_SEPARATOR.'templates'.DIRECTORY_SEPARATOR.'CrudController.txt')
+            );
+
+            file_put_contents($controller, $data);
+
+            $data = str_replace(':model:', $this->argument.'Model',
+                file_get_contents(__DIR__.DIRECTORY_SEPARATOR.'templates'.DIRECTORY_SEPARATOR.'CrudModel.txt')
+            );
+
+            file_put_contents($model, $data);
+        }
     }
 }

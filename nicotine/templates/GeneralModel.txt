@@ -1,0 +1,10 @@
+<?php
+declare(strict_types=1);
+
+namespace workspace\:namespace:\models;
+
+use nicotine\Model;
+
+class :model: extends Model {
+
+}
