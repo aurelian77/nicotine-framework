@@ -40,3 +40,7 @@ function email($to, $subject, $body, $headers = []) {
 function empty_directory(string $directory, string $exclude = '.keep'): void {
     Registry::get('Utils')->emptyDirectory($directory, $exclude);
 }
+
+function __(string $string = ''): string {
+    return Registry::get('Utils')->translate($string);
+}

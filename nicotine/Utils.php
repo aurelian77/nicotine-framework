@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace nicotine;
 
+use nicotine\Registry;
+
 /**
 | Utils class; @see file Helpers.php
 */
@@ -235,6 +237,13 @@ class Utils extends Dispatcher {
                 unlink($path);
             }
         }
+    }
+
+    /**
+    | Translate.
+    */
+    public function translate(string $string): string {
+        return Registry::get('language')[$string] ?? $string;
     }
 
 }

@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace nicotine;
 
+use nicotine\Registry;
+
 /**
 | Kernel class.
 */
@@ -41,6 +43,21 @@ final class Kernel extends Dispatcher {
     {
         session_save_path(realpath(__DIR__ . '/../workspace/sessions/'));
         session_start();
+
+        if (isset($_COOKIE['language']))
+        {
+            // Prevent navigating up into folders.
+            if (strpos($_COOKIE['language'], '..') === false)
+            {
+                $folder = $this->isAdminRequest() ? 'admin' : 'site';
+                $file = __DIR__.'/../workspace/'.$folder.'/langs/'.$_COOKIE['language'].'.php';
+                $path = realpath($file);
+
+                if (!empty($path)) {
+                    require $path; // Load language file.
+                }
+            }
+        }
     }
 
     /**
