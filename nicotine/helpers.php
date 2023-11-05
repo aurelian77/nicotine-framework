@@ -12,7 +12,7 @@ function dd($var, $withType = false): never {
     exit;
 }
 
-function href($to, array $params = []): string {
+function href(string $to = '', array $params = []): string {
     return Registry::get('Utils')->href($to, $params);
 }
 

@@ -29,6 +29,11 @@ Registry::set('config', (object) [
     'urlSuffix' => 'html',
 
     /*
+    | Should be checked on POST requests?
+    */
+    'checkCsrfToken' => true,
+
+    /*
     | Possible values are:
     |   'DEVELOPMENT_MODE' = Show all errors, with SQL queries dump, statistics and hardware resources usage.
     |   'STAGING_MODE' = Show all errors, warnings and notices.

@@ -137,6 +137,7 @@ class Utils extends Dispatcher {
 
     /**
     | Reverse engineering for parse HTTP request.
+    | With any parameter returns homepage for site side.
     |
     | Without "installation folder" and "URL suffix" - they will be added.
     | @note Don't hardcode links; use this method instead. Installation folder and URL suffix can be changed any time.
@@ -144,12 +145,16 @@ class Utils extends Dispatcher {
     | @param string $to @example admin/foo-bar/baz/param/1
     | @param array $params e.g. ['category' => 123, 'sort' => 'asc']
     */
-    public function href(string $to, array $params = []): string
+    public function href(string $to = '', array $params = []): string
     {
         $config = Registry::get('config');
 
+        if (empty($to)) {
+            return $config->baseHref;
+        }
+
         return $config->baseHref .'/'. $to
-            .((!empty($config->urlSuffix) && !str_contains($to, '.')) ? '.'. $config->urlSuffix : '')
+            .(!empty($config->urlSuffix) ? '.'. $config->urlSuffix : '')
             .(!empty($params) ? '?'. http_build_query($params) : '')
         ;
     }

@@ -34,6 +34,8 @@ Nicotine is inspired from Laravel, CodeIgniter and CakePHP frameworks. Those of 
 
 [Hello World Site](https://nicotine-framework.com/hello-world-site.html)
 
+[Forms](https://nicotine-framework.com/forms.html)
+
 [SEO URL Tips](https://nicotine-framework.com/seo-url-tips.html)
 
 [Running from CLI](https://nicotine-framework.com/running-from-cli.html)

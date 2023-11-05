@@ -58,6 +58,31 @@ final class Kernel extends Dispatcher {
                 }
             }
         }
+
+        // 1. in this order.
+        if (Registry::get('config')->checkCsrfToken == true && strtolower($_SERVER['REQUEST_METHOD']) == 'post') {
+            if (empty($_POST['csrf']) || empty($_SESSION['csrf']) || $_POST['csrf'] !== $_SESSION['csrf']) {
+                exit('Bad token!');
+            }
+        }
+
+        // 2. Generate.
+        if (Registry::get('config')->checkCsrfToken == true) {
+            $this->csrf();
+        } else {
+            // Default. Avoid notices on Form Builder.
+            $_SESSION['csrf'] = '';
+        }
+    }
+
+    /**
+    | [Re]Generate CSRF Token.
+    */
+    public function csrf()
+    {
+        $csrf = str_split(md5((string) time()));
+        shuffle($csrf);
+        $_SESSION['csrf'] = implode('', $csrf);
     }
 
     /**
