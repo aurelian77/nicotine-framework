@@ -21,10 +21,19 @@ class Database extends Dispatcher {
     */
     public array $queries = [];
 
+    /**
+    | Registry::get('map');
+    */
     public array $map = [];
 
+    /**
+    | Last table used by de builder.
+    */
     public string $lastTable;
 
+    /**
+    | Query building in progress.
+    */
     public string $selectQuery = "SELECT".PHP_EOL;
 
     /**
@@ -419,6 +428,9 @@ class Database extends Dispatcher {
         ];
     }
 
+    /**
+    | Insert.
+    */
     public function insert($params)
     {
         $shortcut = $this->buildShortcut($params);
@@ -498,6 +510,9 @@ class Database extends Dispatcher {
         trigger_error("Unknown 'where' type!", E_USER_ERROR);
     }
 
+    /**
+    | Update.
+    */
     public function update($params)
     {
         $shortcut = $this->buildShortcut($params);
@@ -506,6 +521,9 @@ class Database extends Dispatcher {
         return $this->set("UPDATE `{$params['table']}` SET ".PHP_EOL.$shortcut['build'].$buildWhere[0], $buildWhere[1]);
     }
 
+    /**
+    | Delete.
+    */
     public function delete($params)
     {
         $params['data'] = ['id' => null]; // Dummy fill.
@@ -516,12 +534,18 @@ class Database extends Dispatcher {
         return $this->set("DELETE FROM `{$params['table']}`".$buildWhere[0], $buildWhere[1]);
     }
 
+    /**
+    | Select.
+    */
     public function select(string $select): object
     {
         $this->selectQuery .= $select.PHP_EOL;
         return $this;
     }
 
+    /**
+    | Select ... from.
+    */
     public function from(string $table): object
     {
         $this->selectQuery .= "FROM `".$table."`".PHP_EOL;
@@ -529,6 +553,9 @@ class Database extends Dispatcher {
         return $this;
     }
 
+    /**
+    | Get join table.
+    */
     public function getJoinTable(string $tableSearchFor): array
     {
         if (!empty($this->map[$tableSearchFor][$this->lastTable])) {
@@ -547,6 +574,9 @@ class Database extends Dispatcher {
         );
     }
 
+    /**
+    | Join.
+    */
     public function join(string $table, string $joinType, string $viaTable): void
     {
         if (!empty($viaTable)) { 
@@ -567,6 +597,9 @@ class Database extends Dispatcher {
         $this->lastTable = $table;
     }
 
+    /**
+    | Join Assoc.
+    */
     public function joinAssoc(string $table, string $joinType, string $viaTable): void
     {
         if (!empty($viaTable)) { 
@@ -597,36 +630,54 @@ class Database extends Dispatcher {
         $this->lastTable = $table;
     }
 
+    /**
+    | Inner join.
+    */
     public function innerJoin(string $table, string $viaTable = ''): object
     {
         $this->join($table, 'INNER', $viaTable);
         return $this;
     }
 
+    /**
+    | Left join.
+    */
     public function leftJoin(string $table, string $viaTable = ''): object
     {
         $this->join($table, 'LEFT', $viaTable);
         return $this;
     }
 
+    /**
+    | Inner assoc.
+    */
     public function innerAssoc(string $table, string $viaTable = ''): object
     {
         $this->joinAssoc($table, 'INNER', $viaTable);
         return $this;
     }
 
+    /**
+    | Left assoc.
+    */
     public function leftAssoc(string $table, string $viaTable = ''): object
     {
         $this->joinAssoc($table, 'LEFT', $viaTable);
         return $this;
     }
 
+    /**
+    | Where ...
+    */
     public function where(string $where): object
     {
         $this->selectQuery .= "WHERE {$where}".PHP_EOL;
         return $this;
     }
 
+    /**
+    | Query.
+    */
     public function query(): string
     {
         $return = $this->selectQuery;
@@ -637,30 +688,45 @@ class Database extends Dispatcher {
         return $return;
     }
 
+    /**
+    | Group by.
+    */
     public function groupBy(string $groupBy): object
     {
         $this->selectQuery .= "GROUP BY {$groupBy}".PHP_EOL;
         return $this;
     }
 
+    /**
+    | Having.
+    */
     public function having(string $having): object
     {
         $this->selectQuery .= "HAVING {$having}".PHP_EOL;
         return $this;
     }
 
+    /**
+    | Order by.
+    */
     public function orderBy(string $orderBy): object
     {
         $this->selectQuery .= "ORDER BY {$orderBy}".PHP_EOL;
         return $this;
     }
 
+    /**
+    | Limit.
+    */
     public function limit(string $limit): object
     {
         $this->selectQuery .= "LIMIT {$limit}".PHP_EOL;
         return $this;
     }
 
+    /**
+    | Custom.
+    */
     public function custom(string $custom): object
     {
         $this->selectQuery .= "{$custom}".PHP_EOL;
