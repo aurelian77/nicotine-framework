@@ -66,7 +66,6 @@ final class Proxy extends Dispatcher {
         $this->session([
             'custom_errors' => $errors,
             'messages_type' => $messageType,
-
             'user_request' => $_REQUEST
         ]);
 

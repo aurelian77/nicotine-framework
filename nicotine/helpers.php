@@ -33,7 +33,7 @@ function get_roles() {
     return Registry::get('Utils')->getRoles();
 }
 
-function email($to, $subject, $body, $headers = []) {
+function email(string $to, string $subject, string $body, string $headers = "Content-Type: text/html; charset=UTF-8".PHP_EOL) {
     Registry::get('Utils')->email($to, $subject, $body, $headers);
 }
 

@@ -16,7 +16,10 @@ final class Kernel extends Dispatcher {
     public function __construct()
     {
         $this->checkRequirements();
-        $this->initPhpHandlers();
+
+        if (!$this->isCliRequest()) {
+            $this->initPhpHandlers();
+        }
 
         spl_autoload_register([$this, 'registerAutoload']);
     }
@@ -80,7 +83,7 @@ final class Kernel extends Dispatcher {
     */
     public function csrf()
     {
-        $csrf = str_split(md5((string) time()));
+        $csrf = str_split(md5((string) (time() + rand())));
         shuffle($csrf);
         $_SESSION['csrf'] = implode('', $csrf);
     }
@@ -168,10 +171,6 @@ final class Kernel extends Dispatcher {
         }
 
         Registry::get('Database')->dbh = null;
-
-        $_SESSION['user_request'] = [];
-        $_SESSION['custom_errors'] = [];
-        $_SESSION['messages_type'] = null;
     }
 
 }

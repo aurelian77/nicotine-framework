@@ -207,14 +207,14 @@ class Utils extends Dispatcher {
         return null;
     }
 
-    public function email($to, $subject, $body, $headers = []) {
+    public function email($to, $subject, $body, $headers) {
         switch (Registry::get('config')->errorReporting) {
             case 'PRODUCTION_MODE':
-                mail($to, $subject, $body, $headers = []);
+                mail($to, $subject, $body, $headers);
             break;
 
             case 'STAGING_MODE':
-                mail(Registry::get('config')->redirectEmailsTo, $subject, $body, $headers = []);
+                mail(Registry::get('config')->redirectEmailsTo, $subject, $body, $headers);
             break;
 
             case 'DEVELOPMENT_MODE':

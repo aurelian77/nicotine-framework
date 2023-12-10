@@ -109,6 +109,8 @@ class Form {
             case 'class':
             case 'style':
             case 'target':
+            case 'minlength':
+            case 'maxlength':
                 $this->attributes[] = $method.'="'.$arguments[0].'"';
             break;
 
