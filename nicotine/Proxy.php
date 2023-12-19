@@ -59,19 +59,35 @@ final class Proxy extends Dispatcher {
 
     /**
     | Redirect back.
-    | @param string $messageType = error (default) | warning | success
+    | @param string $messagesType = error (default) | warning | success
     */
-    public function back(array $errors = [], $messageType = 'error'): never
+    public function back(array $errors = [], string $messagesType = 'error'): never
     {
         $this->session([
             'custom_errors' => $errors,
-            'messages_type' => $messageType,
+            'messages_type' => $messagesType,
             'user_request' => $_REQUEST
         ]);
 
         if (isset($_SERVER['HTTP_REFERER'])) {
             header("Location: {$_SERVER['HTTP_REFERER']}");
         }
+
+        exit;
+    }
+
+    /**
+    | Custom redirect.
+    */
+    public function redirect(string $route, array $messages = [], string $messagesType = ''): never
+    {
+        $this->session([
+            'custom_errors' => $messages,
+            'messages_type' => $messagesType,
+            'user_request' => $_REQUEST
+        ]);
+
+        header("Location: {$route}");
 
         exit;
     }
