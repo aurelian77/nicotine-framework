@@ -33,6 +33,10 @@ function get_roles() {
     return Registry::get('Utils')->getRoles();
 }
 
+function get_user() {
+    return Registry::get('Utils')->getUser();
+}
+
 function email(string $to, string $subject, string $body, string $headers = "Content-Type: text/html; charset=UTF-8".PHP_EOL) {
     Registry::get('Utils')->email($to, $subject, $body, $headers);
 }
@@ -43,4 +47,8 @@ function empty_directory(string $directory, string $exclude = '.keep'): void {
 
 function __(string $string = ''): string {
     return Registry::get('Utils')->translate($string);
+}
+
+function generate_hash(): string {
+    return Registry::get('Utils')->generateHash();
 }

@@ -159,17 +159,37 @@ class Utils extends Dispatcher {
         ;
     }
 
+    /**
+    | Get roles.
+    */
     public function getRoles()
     {
         if (isset($_SESSION)
             && is_array($_SESSION)
             && array_key_exists('staff_member', $_SESSION)
-            && is_array($_SESSION['staff_member']) 
-            && array_key_exists('admin_roles', $_SESSION['staff_member']) 
+            && is_array($_SESSION['staff_member'])
+            && array_key_exists('admin_roles', $_SESSION['staff_member'])
             && is_array($_SESSION['staff_member']['admin_roles'])
         ) {
             return $_SESSION['staff_member']['admin_roles'];
         }
+
+        return [];
+    }
+
+    /**
+    | Get user.
+    */
+    public function getUser()
+    {
+        if (isset($_SESSION)
+            && is_array($_SESSION)
+            && array_key_exists('staff_member', $_SESSION)
+            && is_array($_SESSION['staff_member'])
+        ) {
+            return $_SESSION['staff_member'];
+        }
+
         return [];
     }
 
@@ -249,6 +269,17 @@ class Utils extends Dispatcher {
     */
     public function translate(string $string): string {
         return Registry::get('language')[$string] ?? $string;
+    }
+
+    /**
+    | Generate random hexa hash, 128 chrs length.
+    | This should be temporary. After user request you should set it to null into the database.
+    */
+    public function generateHash(): string
+    {
+        $hash = str_split(hash('sha512', (string) time()));
+        shuffle($hash);
+        return implode('', $hash);
     }
 
 }
