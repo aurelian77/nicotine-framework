@@ -41,8 +41,10 @@ if ($dispatcher->isCliRequest()) {
 
 Registry::set('Dispatcher', $dispatcher);
 
-Registry::get('Proxy')->session([
-    'user_request' => [],
-    'custom_errors' => [],
-    'messages_type' => null,
-]);
+if (!str_starts_with($_SERVER['REQUEST_URI'], '/admin/static/')) {
+    Registry::get('Proxy')->session([
+        'user_request' => [],
+        'custom_errors' => [],
+        'messages_type' => null,
+    ]);
+}

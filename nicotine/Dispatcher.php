@@ -131,13 +131,18 @@ class Dispatcher {
             );
         }
 
-        if (str_starts_with($_SERVER['REQUEST_URI'], '/admin/static/'))
+        // Get rid of GET params.
+        if (!empty(Registry::get('Proxy')->get())) {
+            $requestUri = preg_replace('/\?[^\/]*$/', '', $requestUri);
+        }
+
+        if (str_starts_with($requestUri, '/admin/static/'))
         {
             if (empty(get_roles())) {
                 trigger_error('You don\'t have any role in order to access this resource!', E_USER_ERROR);
             }
 
-            $protectedFile = __DIR__ .'/../workspace'. $_SERVER['REQUEST_URI'];
+            $protectedFile = __DIR__ .'/../workspace'. $requestUri;
             $protectedFilePath = realpath($protectedFile);
 
             if (!empty($protectedFilePath))
@@ -163,18 +168,9 @@ class Dispatcher {
         $requestUri = preg_replace('/^'. preg_quote($prefix, '/') .'[\/]?/i', '', $requestUri);
         $requestUri = preg_replace('/^'. $subPrefix .'[\/]?/i', '', $requestUri);
 
-        $suffixPattern= '/\.'. preg_quote($suffix, '/') .'[\?]?[^\/]*$/i';
-        $hasQuery = str_starts_with($requestUri, '?');
-
-        if (!empty($suffix) && !empty($requestUri) && !preg_match($suffixPattern, $requestUri) && !$hasQuery) {
-            trigger_error('Missing URL suffix! Please check '. $this->quote() .'urlSuffix'. $this->quote() .' configuration directive!', E_USER_ERROR);
-        }
-
-        // Destroy suffix.
-        $requestUri = preg_replace($suffixPattern, '', $requestUri);
-
-        if ($hasQuery) {
-            $requestUri = '';
+        // Get rid of the suffix.
+        if (!empty($suffix)) {
+            $requestUri = preg_replace('/\.'. preg_quote($suffix, '/') .'$/i', '', $requestUri);
         }
 
         // API request.

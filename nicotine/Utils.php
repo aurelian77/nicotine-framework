@@ -154,7 +154,7 @@ class Utils extends Dispatcher {
         }
 
         return $config->baseHref .'/'. $to
-            .(!empty($config->urlSuffix) ? '.'. $config->urlSuffix : '')
+            .((!empty($config->urlSuffix) && !str_starts_with($to, 'admin/static/')) ? '.'. $config->urlSuffix : '')
             .(!empty($params) ? '?'. http_build_query($params) : '')
         ;
     }

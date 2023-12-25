@@ -83,7 +83,7 @@ final class Kernel extends Dispatcher {
     */
     public function csrf()
     {
-        $csrf = str_split(md5((string) (time() + rand())));
+        $csrf = str_split(md5((string) time()));
         shuffle($csrf);
         $_SESSION['csrf'] = implode('', $csrf);
     }
@@ -154,23 +154,25 @@ final class Kernel extends Dispatcher {
 
     public function __destruct()
     {
-        if (Registry::get('config')->errorReporting != 'PRODUCTION_MODE') {
-            print Registry::get('Error')->display();
-        }
+        if (!str_starts_with($_SERVER['REQUEST_URI'], '/admin/static/')) {
+            if (Registry::get('config')->errorReporting != 'PRODUCTION_MODE') {
+                print Registry::get('Error')->display();
+            }
 
-        if (Registry::get('config')->errorReporting == 'DEVELOPMENT_MODE') {
-            print Registry::get('Database')->display();
-        }
+            if (Registry::get('config')->errorReporting == 'DEVELOPMENT_MODE') {
+                print Registry::get('Database')->display();
+            }
 
-        if (Registry::get('config')->logErrors == true) {
-            Registry::get('Error')->log();
-        }
+            if (Registry::get('config')->logErrors == true) {
+                Registry::get('Error')->log();
+            }
 
-        if (Registry::get('config')->errorReporting == 'DEVELOPMENT_MODE') {
-            print Registry::get('Kernel')->stats();
-        }
+            if (Registry::get('config')->errorReporting == 'DEVELOPMENT_MODE') {
+                print Registry::get('Kernel')->stats();
+            }
 
-        Registry::get('Database')->dbh = null;
+            Registry::get('Database')->dbh = null;
+        }
     }
 
 }
